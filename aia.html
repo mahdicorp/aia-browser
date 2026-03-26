@@ -1,0 +1,66 @@
+
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>AIA SECURE BROWSER</title>
+    <style>
+        body, html { margin:0; padding:0; height:100%; background:#121212; overflow:hidden; font-family: sans-serif; }
+        #nav-bar { height: 50px; background: #282828; display: flex; align-items: center; padding: 0 10px; border-bottom: 2px solid #383838; }
+        #url-input { flex: 1; height: 30px; border-radius: 15px; border: none; padding: 0 20px; background: #121212; color: #00ff00; outline: none; font-family: monospace; }
+        #btn-go { margin-left: 10px; background: #00ff00; color: #000; border: none; padding: 5px 20px; border-radius: 15px; cursor: pointer; font-weight: bold; }
+        #main-view { width: 100%; height: calc(100% - 50px); border: none; background: #fff; }
+        #loader { position: absolute; top: 60px; right: 20px; color: #00ff00; font-size: 12px; display: none; }
+    </style>
+</head>
+<body>
+
+<div id="nav-bar">
+    <input type="text" id="url-input" value="logiweb.aia" placeholder="Entrez une adresse ou logiweb.aia">
+    <button id="btn-go" onclick="charger()">VISITER</button>
+</div>
+<div id="loader">Synchronisation AIA...</div>
+<iframe id="main-view" src="about:blank"></iframe>
+
+<script>
+    const GOOGLE_API = "https://script.google.com/macros/s/AKfycbyVJznHrmL2QfRGlxvv3AofE6VzPGCDRo0HepLnY4yt2FbVoHAOFhLkokJLTnRS-6WFyA/exec";
+    const view = document.getElementById('main-view');
+    const input = document.getElementById('url-input');
+    const loader = document.getElementById('loader');
+
+    async function charger() {
+        let val = input.value.trim();
+        loader.style.display = "block";
+
+        if (val === "logiweb.aia") {
+            try {
+                // On récupère l'IP via HTTPS chez Google
+                const res = await fetch(GOOGLE_API);
+                const ip = await res.text();
+                
+                if(ip && ip.length > 5) {
+                    // On force le HTTPS vers ton modem
+                    const destination = "https://" + ip.trim() + "/bp";
+                    console.log("Navigation vers : " + destination);
+                    view.src = destination;
+                }
+            } catch (e) {
+                alert("Erreur de connexion au serveur Google.");
+            }
+        } else {
+            // Navigation classique (Moteur de recherche)
+            if(!val.startsWith('http')) val = "https://www.google.com/search?igu=1&q=" + val;
+            view.src = val;
+        }
+        loader.style.display = "none";
+    }
+
+    // Touche Entrée pour valider
+    input.addEventListener("keypress", (e) => { if(e.key === "Enter") charger(); });
+    
+    // Chargement automatique au départ
+    window.onload = charger;
+</script>
+</body>
+</html>
